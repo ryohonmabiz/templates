@@ -20,15 +20,13 @@ jobs:
             const branchName = context.payload.issue.pull_request.head.ref;
             const prJson = context.payload.issue.pull_request;
 
-            const message = `
-✅ ブランチ名の検証結果：
-
-- head.ref から取得したブランチ名: \`${branchName}\`
-- pull_request 全体の内容:
-\\\`\\\`\\\`json
-${JSON.stringify(prJson, null, 2)}
-\\\`\\\`\\\`
-`;
+            let message = "";
+            message += "✅ ブランチ名の検証結果：\n\n";
+            message += "- head.ref から取得したブランチ名: `" + branchName + "`\n";
+            message += "- pull_request 全体の内容:\n";
+            message += "```json\n";
+            message += JSON.stringify(prJson, null, 2) + "\n";
+            message += "```\n";
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
