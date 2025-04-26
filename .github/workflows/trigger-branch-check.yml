@@ -1,0 +1,40 @@
+name: '[test] Comment Trigger Branch Check'
+
+on:
+  issue_comment:
+    types: [ created ]
+
+jobs:
+  test-branch-check:
+    if: github.event.issue.pull_request != null && startsWith(github.event.comment.body, 'update-v4-schema')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Get PR info and output
+        id: pr-info
+        run: |
+          echo "full-pr-json=${{ toJson(github.event.issue.pull_request) }}" >> $GITHUB_OUTPUT
+          echo "branch-name=${{ github.event.issue.pull_request.head.ref }}" >> $GITHUB_OUTPUT
+
+      - name: Post result comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branchName = "${{ steps.pr-info.outputs.branch-name }}";
+            const prJson = JSON.parse(`${{ steps.pr-info.outputs.full-pr-json }}`);
+            const message = `
+✅ ブランチ名の検証結果：
+
+- head.ref から取得したブランチ名: \`${branchName}\`
+- pull_request 全体の内容: \`\`\`json
+${JSON.stringify(prJson, null, 2)}
+\`\`\`
+`;
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
