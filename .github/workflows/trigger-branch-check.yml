@@ -53,6 +53,7 @@ jobs:
             git commit -m "chore: auto-update README.md"
             git push origin HEAD:${{ steps.pr-info.outputs.result }}
             echo "pushed=yes" >> $GITHUB_OUTPUT
+            echo "commit_sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
           fi
 
       - name: Post result comment
@@ -60,15 +61,18 @@ jobs:
         with:
           script: |
             const branchName = "${{ steps.pr-info.outputs.result }}";
-            const updatedAt = "${{ steps.modify-readme.outputs.updated-at }}";
             const pushed = "${{ steps.commit-push.outputs.pushed }}";
+            const commitSha = "${{ steps.commit-push.outputs.commit_sha }}";
+            const repoUrl = `https://github.com/${{ github.repository }}`;
 
-            let message = `✅ 自動更新結果\n\n`;
+            let message = `[RESULT]\n\n`;
             message += `- 対象ブランチ: \`${branchName}\`\n`;
-            message += `- 更新タイミング: \`${updatedAt}\`\n`;
-            message += pushed === "yes" 
-              ? "- README.mdをコミット＆プッシュしました 🚀" 
-              : "- 差分がなかったのでプッシュは行いませんでした 💤";
+            if (pushed === "yes") {
+              message += `- スキーマ差分を検出してコミット＆プッシュしました 🚀\n`;
+              message += `- [変更内容を見る](${repoUrl}/commit/${commitSha})\n`;
+            } else {
+              message += `- 差分がなかったため何もせず終了しました 💤\n`;
+            }
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
