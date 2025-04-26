@@ -65,8 +65,7 @@ jobs:
             const commitSha = "${{ steps.commit-push.outputs.commit_sha }}";
             const repoUrl = `https://github.com/${{ github.repository }}`;
 
-            let message = `[RESULT]\n\n`;
-            message += `- 対象ブランチ: \`${branchName}\`\n`;
+            let message = `### update-v4-schema RESULT\n\n`;
             if (pushed === "yes") {
               message += `- スキーマ差分を検出してコミット＆プッシュしました 🚀\n`;
               message += `- [変更内容を見る](${repoUrl}/commit/${commitSha})\n`;
