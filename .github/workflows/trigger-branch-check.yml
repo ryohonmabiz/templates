@@ -1,4 +1,4 @@
-name: '[test] Comment Trigger and Auto Push + PR Comment'
+name: '[test] Comment Trigger, Auto Push + PR Comment'
 
 on:
   issue_comment:
@@ -15,17 +15,24 @@ jobs:
       TZ: Asia/Tokyo
 
     steps:
-      - name: Get PR branch name
+      - name: Get PR branch name via GitHub API
         id: pr-info
-        run: |
-          echo "branch-name=${PR_BRANCH}" >> "$GITHUB_OUTPUT"
-        env:
-          PR_BRANCH: ${{ github.event.issue.pull_request.head.ref }}
+        uses: actions/github-script@v7
+        with:
+          result-encoding: string
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            console.log("Fetched PR Info:", pr);
+            return pr.head.ref;
 
       - name: Checkout PR branch
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.pr-info.outputs.branch-name }}
+          ref: ${{ steps.pr-info.outputs.result }}
 
       - name: Modify README.md
         id: modify-readme
@@ -44,7 +51,7 @@ jobs:
             echo "pushed=no" >> $GITHUB_OUTPUT
           else
             git commit -m "chore: auto-update README.md"
-            git push origin HEAD:${{ steps.pr-info.outputs.branch-name }}
+            git push origin HEAD:${{ steps.pr-info.outputs.result }}
             echo "pushed=yes" >> $GITHUB_OUTPUT
           fi
 
@@ -52,7 +59,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branchName = "${{ steps.pr-info.outputs.branch-name }}";
+            const branchName = "${{ steps.pr-info.outputs.result }}";
             const updatedAt = "${{ steps.modify-readme.outputs.updated-at }}";
             const pushed = "${{ steps.commit-push.outputs.pushed }}";
 
@@ -60,7 +67,7 @@ jobs:
             message += `- 対象ブランチ: \`${branchName}\`\n`;
             message += `- 更新タイミング: \`${updatedAt}\`\n`;
             message += pushed === "yes" 
-              ? "- README.mdの更新を検知してコミット＆プッシュしました 🚀" 
+              ? "- README.mdをコミット＆プッシュしました 🚀" 
               : "- 差分がなかったのでプッシュは行いませんでした 💤";
 
             await github.rest.issues.createComment({
