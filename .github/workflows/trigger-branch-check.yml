@@ -17,10 +17,10 @@ jobs:
     steps:
       - name: Get PR branch name
         id: pr-info
+        run: |
+          echo "branch-name=${PR_BRANCH}" >> "$GITHUB_OUTPUT"
         env:
           PR_BRANCH: ${{ github.event.issue.pull_request.head.ref }}
-        run: |
-          echo "branch-name=$PR_BRANCH" >> $GITHUB_OUTPUT
 
       - name: Checkout PR branch
         uses: actions/checkout@v4
