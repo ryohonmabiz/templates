@@ -15,7 +15,7 @@ jobs:
       - name: Get PR info and output
         id: pr-info
         run: |
-          echo "full-pr-json=${{ toJson(github.event.issue.pull_request) }}" >> $GITHUB_OUTPUT
+          echo "full-pr-json=${{ github.event.issue.pull_request }}" >> $GITHUB_OUTPUT
           echo "branch-name=${{ github.event.issue.pull_request.head.ref }}" >> $GITHUB_OUTPUT
 
       - name: Post result comment
