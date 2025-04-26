@@ -21,7 +21,7 @@ jobs:
             const prJson = context.payload.issue.pull_request;
 
             let message = "";
-            message += "✅ ブランチ名の検証結果：\n\n";
+            message += "ブランチ名の検証結果：\n\n";
             message += "- head.ref から取得したブランチ名: `" + branchName + "`\n";
             message += "- pull_request 全体の内容:\n";
             message += "```json\n";
